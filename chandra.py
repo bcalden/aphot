@@ -12,9 +12,11 @@
 # (at your option) any later version.
 
 
-from scipy.misc import imsave
+from imageio import imwrite as imsave
 import numpy as np 
 import astropy.io.fits
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 from common import *
 
 
@@ -56,12 +58,23 @@ def read_regions(filename, header):
     for line in open(filename):
         if line.startswith('circle('):
             par = line.strip(')"\n').lstrip('circle(').split(',')
-            ra, dec, rad = [float(x) for x in par]
+            ra, dec, rad = [x for x in par]
+            coords = SkyCoord(f'{ra} {dec}', unit=(u.hourangle,u.deg))
+            ra, dec = coords.ra.value, coords.dec.value
+            rad = float(rad)
+
             a = b = int(ceil(rad / 0.492))
             theta = 0
         elif line.startswith('ellipse('):
             par = line.strip(')"\n').lstrip('ellipse(').split(',')
-            ra, dec, a, b, theta = [float(x.strip('"')) for x in par]
+            ra, dec, a, b, theta = [x.strip('"') for x in par]
+            coords = SkyCoord(f'{ra} {dec}', unit=(u.hourangle,u.deg))
+            ra, dec = coords.ra.value, coords.dec.value
+
+            a = float(a)
+            b = float(b)
+            theta = float(theta)
+            
             a = int(ceil(a / 0.492))
             b = int(ceil(b / 0.492))
         else:
